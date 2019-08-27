@@ -1,0 +1,11 @@
+name: ChargeAndSwitchGun
+version: ${project.version}
+main: jp.mkserver.chargeandswitchgun.ChargeAndSwitchGun
+authors: [Mr_IK]
+description: ChargeAndSwitchGun
+depend: [CrackShot]
+commands:
+  casgreload:
+    description: CASGRELOAD
+    usage: /<command>
+    default: op
