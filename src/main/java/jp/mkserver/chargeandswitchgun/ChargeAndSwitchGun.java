@@ -41,6 +41,7 @@ public final class ChargeAndSwitchGun extends JavaPlugin {
             for(String str:chargelist()){
                 chargeweapons.put(str,new ChargeYML(this,str));
             }
+            getLogger().info("Reload Complete.");
         }
         return true;
     }
@@ -48,6 +49,7 @@ public final class ChargeAndSwitchGun extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        CrackShotAPI.init(this);
         chargeweapons = new HashMap<>();
         event = new CASG_Event(this);
         getServer().getPluginManager().registerEvents(event,this);

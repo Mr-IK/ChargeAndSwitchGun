@@ -1,5 +1,6 @@
 package jp.mkserver.chargeandswitchgun;
 
+import com.shampaggon.crackshot.events.WeaponPrepareShootEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -7,7 +8,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -55,6 +55,14 @@ public class CASG_Event implements Listener {
                     cancel();
                     return;
                 }
+                if(!CrackShotAPI.validHotbar(p,plugin.chargeweapons.get(id).group)){
+                    loadingweap.remove(p.getUniqueId());
+                    p.setLevel(0);
+                    p.setExp(0f);
+                    tasks.remove(p.getUniqueId());
+                    cancel();
+                    return;
+                }
                 p.setLevel(p.getLevel()+add);
                 BigDecimal bd3 = new BigDecimal(add);
                 BigDecimal bd4 = new BigDecimal("100");
@@ -91,9 +99,22 @@ public class CASG_Event implements Listener {
                 if(cooldownweap.contains(p.getUniqueId().toString()+" : "+yml.name)){
                     continue;
                 }
+                if(!CrackShotAPI.validHotbar(p,yml.group)){
+                    continue;
+                }
                 startTask(p,yml.name);
                 return;
             }
+        }
+    }
+
+    @EventHandler
+    public void onPreWeaponShoot(WeaponPrepareShootEvent e){
+        Player p = e.getPlayer();
+        String group = CrackShotAPI.director.returnParentNode(p);
+        String groups = CrackShotAPI.director.getString(group + ".Item_Information.Inventory_Control");
+        if(!CrackShotAPI.validHotbar(p,groups)){
+            e.setCancelled(true);
         }
     }
 
@@ -130,6 +151,9 @@ public class CASG_Event implements Listener {
                 if(cooldownweap.contains(p.getUniqueId().toString()+" : "+yml.name)){
                     continue;
                 }
+                if(!CrackShotAPI.validHotbar(p,yml.group)){
+                    continue;
+                }
                 startTask(p,yml.name);
                 return;
             }
@@ -141,6 +165,9 @@ public class CASG_Event implements Listener {
         Player p = e.getPlayer();
         if(loadingweap.containsKey(p.getUniqueId())&&p.getLevel()==100&& (e.getAction()==Action.RIGHT_CLICK_AIR||e.getAction()==Action.RIGHT_CLICK_BLOCK)){
             String id = loadingweap.get(p.getUniqueId());
+            if(!CrackShotAPI.validHotbar(p,plugin.chargeweapons.get(id).group)){
+                return;
+            }
             loadingweap.remove(p.getUniqueId());
             p.setLevel(0);
             p.setExp(0f);
@@ -164,6 +191,9 @@ public class CASG_Event implements Listener {
                 for(ChargeYML yml: plugin.chargeweapons.values()){
                     if(item.getItemMeta().getDisplayName().equals(yml.itemname)){
                         if(cooldownweap.contains(p.getUniqueId().toString()+" : "+yml.name)){
+                            continue;
+                        }
+                        if(!CrackShotAPI.validHotbar(p,yml.group)){
                             continue;
                         }
                         startTask(p,yml.name);

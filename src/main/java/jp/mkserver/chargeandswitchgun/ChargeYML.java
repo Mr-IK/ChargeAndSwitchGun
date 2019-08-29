@@ -15,6 +15,7 @@ public class ChargeYML {
     String csname;
     String chargesound;
     String completesound;
+    String group;
     int chargetick;
     int chargeper;
     int cooldowntick;
@@ -37,6 +38,7 @@ public class ChargeYML {
             chargetick = data.getInt("chargetick");
             chargeper = data.getInt("chargeper");
             cooldowntick = data.getInt("cooldowntick");
+            group = data.getString("group");
         }
     }
 

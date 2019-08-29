@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.permissions.PermissionAttachment;
@@ -29,9 +30,11 @@ import static org.bukkit.Bukkit.getServer;
 public class CrackShotAPI {
 
     static CSDirector director;
+    static ChargeAndSwitchGun casg;
 
-    static{
+    public static void init(ChargeAndSwitchGun casg){
         director = JavaPlugin.getPlugin(CSDirector.class);
+        CrackShotAPI.casg = casg;
     }
 
     /**
@@ -593,5 +596,52 @@ public class CrackShotAPI {
 
     public static boolean isNameWeaponContain(String parent_node){
         return getWeaponFromName(parent_node)!=null;
+    }
+
+    public static boolean validHotbar(Player shooter,String invCtrl) {
+        boolean retVal = true;
+        Inventory playerInv = shooter.getInventory();
+        String[] groupList = invCtrl.replaceAll(" ", "").split(",");
+        String[] var10 = groupList;
+        int var9 = groupList.length;
+
+        for(int var8 = 0; var8 < var9; ++var8) {
+            String invGroup = var10[var8];
+            int groupLimit = director.getInt(invGroup + ".Limit");
+            int groupCount = 0;
+
+            for(int i = 0; i < 9; ++i) {
+                ItemStack checkItem = playerInv.getItem(i);
+                if (checkItem != null && director.itemIsSafe(checkItem)) {
+                    String[] checkParent = director.itemParentNode(checkItem, shooter);
+                    if (checkParent != null) {
+                        String groupCheck = director.getString(checkParent[0] + ".Item_Information.Inventory_Control");
+                        if (groupCheck != null && groupCheck.contains(invGroup)) {
+                            ++groupCount;
+                        }
+                    }else{
+                        //特殊アイテムのparent設定
+                        if(checkItem.getItemMeta()!=null&&checkItem.getItemMeta().getDisplayName()!=null){
+                            for(ChargeYML yml: casg.chargeweapons.values()){
+                                if(checkItem.getItemMeta().getDisplayName().equals(yml.itemname)){
+                                    String groupCheck = yml.group;
+                                    if (groupCheck != null && groupCheck.contains(invGroup)) {
+                                        ++groupCount;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (groupCount > groupLimit) {
+                director.sendPlayerMessage(shooter, invGroup, ".Message_Exceeded", "<shooter>", "<victim>", "<flight>", "<damage>");
+                director.playSoundEffects(shooter, invGroup, ".Sounds_Exceeded", false, (Location)null);
+                retVal = false;
+            }
+        }
+
+        return retVal;
     }
 }
